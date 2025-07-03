@@ -5,38 +5,73 @@ document.addEventListener("DOMContentLoaded", function () {
     const taskInput = document.getElementById("task-input");
     const taskList = document.getElementById("task-list");
 
-    // Define addTask function
-    function addTask() {
-        const taskText = taskInput.value.trim();
-        if (taskText === "") {
-            alert("Please enter a task");
-            return;
-        }
+    // 1️⃣ Load Tasks from Local Storage
+    loadTasks();
 
+    // 2️⃣ Define addTask function (save = true by default)
+    function addTask(taskText, save = true) {
         const li = document.createElement("li");
         li.textContent = taskText;
 
         const removeButton = document.createElement("button");
         removeButton.textContent = "Remove";
-        removeButton.classList.add("remove-btn"); // ✅ FIXED
+        removeButton.classList.add("remove-btn");
 
         removeButton.onclick = function () {
             li.remove();
+            removeTaskFromStorage(taskText);
         };
 
         li.appendChild(removeButton);
         taskList.appendChild(li);
 
         taskInput.value = "";
+
+        // Save task only if not loading from storage
+        if (save) {
+            saveTaskToStorage(taskText);
+        }
     }
 
-    // Add click event to Add button
-    addButton.addEventListener("click", addTask);
+    // 3️⃣ Function to save task to Local Storage
+    function saveTaskToStorage(taskText) {
+        const storedTasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+        storedTasks.push(taskText);
+        localStorage.setItem("tasks", JSON.stringify(storedTasks));
+    }
 
-    // Add keypress event for Enter key
+    // 4️⃣ Function to remove task from Local Storage
+    function removeTaskFromStorage(taskText) {
+        let storedTasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+        storedTasks = storedTasks.filter(task => task !== taskText);
+        localStorage.setItem("tasks", JSON.stringify(storedTasks));
+    }
+
+    // 5️⃣ Load tasks from Local Storage and render to DOM
+    function loadTasks() {
+        const storedTasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+        storedTasks.forEach(taskText => addTask(taskText, false));
+    }
+
+    // 6️⃣ Add event listener for Add button
+    addButton.addEventListener("click", function () {
+        const taskText = taskInput.value.trim();
+        if (taskText === "") {
+            alert("Please enter a task");
+            return;
+        }
+        addTask(taskText);
+    });
+
+    // 7️⃣ Add event listener for Enter key press
     taskInput.addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
-            addTask(); // ✅ Correct structure
+            const taskText = taskInput.value.trim();
+            if (taskText === "") {
+                alert("Please enter a task");
+                return;
+            }
+            addTask(taskText);
         }
     });
 });
